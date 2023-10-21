@@ -16,14 +16,21 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener(RENDER_EVENT, () => {
   //   console.log(todos);
   const uncompletedTODOList = document.getElementById("todos");
-
-  //Membersihkan container sebelum diperbarui
+  //Membersihkan container sebelum diperbarui agar tidak terjadi duplikasi
   uncompletedTODOList.innerHTML = "";
+
+  // Menampilakan todolist yang sudah selesai
+  const completedTODOList = document.getElementById("completed-todos");
+  //Membersihkan container sebelum diperbarui agar tidak terjadi duplikasi
+  completedTODOList.innerHTML = "";
 
   for (const todoItem of todos) {
     const todoElement = makeTodo(todoItem);
+    /* Pengecekan untuk menampilkan todolist yang belum selesai */
     if (!todoItem.isCompleted) {
       uncompletedTODOList.append(todoElement);
+    } else {
+      completedTODOList.append(todoElement);
     }
   }
 });
@@ -123,4 +130,31 @@ function findTodo(todoId) {
     }
   }
   return null;
+}
+
+// Fungsi untuk menghapus todolist/task completed (selesai)
+function removeTaskFromCompleted(todoId) {
+  const todoTarget = findTodoIndex(todoId);
+  if (todoTarget === -1) return;
+  // menghapus isi array todos menggunakan method splice()
+  todos.splice(todoTarget, 1);
+  document.dispatchEvent(new Event(RENDER_EVENT));
+}
+
+// Fungsi untuk mengembalikan todolist/task completed (selesai) ke incompleted(belum selesai)
+function undoTaskFromCompleted(todoId) {
+  const todoTarget = findTodo(todoId);
+  if (todoTarget === null) return;
+  todoTarget.isCompleted = false;
+  document.dispatchEvent(new Event(RENDER_EVENT));
+}
+
+function findTodoIndex(todoId) {
+  for (const index in todos) {
+    if (todos[index].id === todoId) {
+      return index;
+    }
+  }
+
+  return -1;
 }
