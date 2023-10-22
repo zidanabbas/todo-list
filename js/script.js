@@ -1,8 +1,10 @@
 // Mendefinisikan/initialisasi custom event yang sudah dibuat
 const RENDER_EVENT = "render-todo";
-
+const SAVED_EVENT = "saved-todo";
 //Menampung data todo berupa object yang disimpan dalam array todos
 const todos = [];
+// Mendefinisikan key storage
+const STORAGE_KEY = "TODO_APPS";
 
 // Fungsi untuk memuat DOM
 document.addEventListener("DOMContentLoaded", () => {
@@ -11,6 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     addTodo();
   });
+
+  if (isStorageExist()) {
+    loadDataFromStorage();
+  }
 });
 
 document.addEventListener(RENDER_EVENT, () => {
@@ -46,6 +52,7 @@ function addTodo() {
 
   // Membuat event baru bernama RENDER_EVENT
   document.dispatchEvent(new Event(RENDER_EVENT));
+  saveData();
 }
 
 // Fungsi untuk membuat generate id unik
@@ -121,6 +128,7 @@ function addTaskToCompeleted(todoId) {
 
   todoTarget.isCompleted = true;
   document.dispatchEvent(new Event(RENDER_EVENT));
+  saveData();
 }
 
 function findTodo(todoId) {
@@ -139,6 +147,7 @@ function removeTaskFromCompleted(todoId) {
   // menghapus isi array todos menggunakan method splice()
   todos.splice(todoTarget, 1);
   document.dispatchEvent(new Event(RENDER_EVENT));
+  saveData();
 }
 
 // Fungsi untuk mengembalikan todolist/task completed (selesai) ke incompleted(belum selesai)
@@ -147,6 +156,7 @@ function undoTaskFromCompleted(todoId) {
   if (todoTarget === null) return;
   todoTarget.isCompleted = false;
   document.dispatchEvent(new Event(RENDER_EVENT));
+  saveData();
 }
 
 function findTodoIndex(todoId) {
@@ -157,4 +167,38 @@ function findTodoIndex(todoId) {
   }
 
   return -1;
+}
+
+function saveData() {
+  if (isStorageExist()) {
+    const parsed = JSON.stringify(todos);
+    localStorage.setItem(STORAGE_KEY, parsed);
+    document.dispatchEvent(new Event(SAVED_EVENT));
+  }
+}
+
+function isStorageExist() {
+  if (typeof Storage === undefined) {
+    alert("Browser tidak mendunkung Web Storage");
+    return false;
+  }
+  return true;
+}
+
+document.addEventListener(SAVED_EVENT, () => {
+  localStorage.getItem(STORAGE_KEY);
+  alert("Data Berhasil di Simpan ke dalam Local Storage");
+});
+
+function loadDataFromStorage() {
+  const serializedData = localStorage.getItem(STORAGE_KEY);
+  let data = JSON.parse(serializedData);
+
+  if (data !== null) {
+    for (const todo of data) {
+      todos.push(todo);
+    }
+  }
+
+  document.dispatchEvent(new Event(RENDER_EVENT));
 }
